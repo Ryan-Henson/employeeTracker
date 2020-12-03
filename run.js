@@ -13,9 +13,6 @@ connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId + "\n");
   promptUser();
-  /////////////////////////////////////////////
-  //will run a view, add, edit, delete propmt//
-  /////////////////////////////////////////////
 });
 
 function promptUser() {
@@ -32,20 +29,21 @@ function promptUser() {
         "Add new department",
         "Add new role",
         "Update employee roles",
+        "EXIT",
       ],
     })
     .then((answer) => {
       switch (answer.choice) {
         case "View all employees":
-          cALLE();
+          cALL("employee");
           break;
 
         case "View all departments":
-          cALLD();
+          cALL("department");
           break;
 
         case "View all roles":
-          cALLR();
+          cALL("role");
           break;
 
         case "Add new employee":
@@ -61,7 +59,11 @@ function promptUser() {
           break;
 
         case "Update employee roles":
-          eUpp();
+          eRoleUpp();
+          break;
+
+        case "EXIT":
+          process.exit();
           break;
 
         default:
@@ -69,42 +71,17 @@ function promptUser() {
       }
     });
 }
-////////////////////////////////////////////////////////////////////////////////////////////
-// want to put all in one function but google says you cant pass a "table" as a ver so w/e//
-function cALLE() {
-  connection.query("SELECT * FROM employee", function (err, res) {
+
+function cALL(thing) {
+  connection.query("SELECT * FROM ??", thing, function (err, res) {
     if (err) throw err;
     console.table(res);
-    ///////////////////////////////////////
-    //then will run a back or exit prompt//
-    ///////////////////////////////////////
-    process.exit();
+    promptUser();
   });
 }
-function cALLD() {
-  connection.query("SELECT * FROM department", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-    ///////////////////////////////////////
-    //then will run a back or exit prompt//
-    ///////////////////////////////////////
-    process.exit();
-  });
-}
-function cALLR() {
-  connection.query("SELECT * FROM role", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-    ///////////////////////////////////////
-    //then will run a back or exit prompt//
-    ///////////////////////////////////////
-    process.exit();
-  });
-}
-////////////////////////////////////////////////////////////////////////////////////////
 
 function eADD() {
-  connection.query("SELECT title FROM role", function (err, res) {
+  connection.query("SELECT * FROM role", function (err, res) {
     if (err) throw err;
     inquirer
       .prompt([
@@ -118,38 +95,58 @@ function eADD() {
           type: "input",
           message: "What is the employees last name?",
         },
-        ///////////////////////////////////////////////////////////////////////////////////
-        ///////////////////////////////why u no work?////////////////////////////////////
         {
           name: "inputRole",
           type: "list",
           message: "What is the employees role?",
-          choices: [1, 2, 3],
-          // choices: res.map((item) => ({ role: item.title })),
+          choices: res.map((item) => ({ name: item.title, value: item })),
         },
         {
           name: "inputManagerID",
-          type: "list",
-          message: "Who will be the employees manager?",
-          choices: [1, 2, 3],
-          // choices: res.map((item) => ({ employees: item.first_name item.last_name })),
+          type: "input",
+          message:
+            "What is the manager ID (must be a number) for this employee?",
         },
-        //////////////////////////////////////////////////////////////////////////////////
       ])
       .then(function (answer) {
         connection.query("INSERT INTO employee SET ?", {
           first_name: answer.inputName1,
           last_name: answer.inputName2,
-          role_id: answer.inputRole,
+          role_id: answer.inputRole.id,
           manager_id: answer.inputManagerID,
         });
-        ///////////////////////////////////////
-        //then will run a back or exit prompt//
-        ///////////////////////////////////////
-        process.exit();
+        promptUser();
+        //manEADD();
       });
   });
 }
+///////////////////////////////was not able to get to work, it kept adding after the initl add.////////////////////////////////////////////
+// function manEADD() {
+//   connection.query("SELECT * FROM employee", function (err, res) {
+//     if (err) throw err;
+//     inquirer
+//       .prompt({
+//         name: "inputManagerID",
+//         type: "list",
+//         message: "Who will be the employees manager?",
+//         choices: res.map((item) => ({
+//           name: `${item.first_name} ${item.last_name}`,
+//           value: item,
+//         })),
+//       })
+//       .then(function (answer) {
+//         console.log(answer.inputManagerID.id);
+//         connection.query("INSERT INTO employee SET ?", {
+//           manager_id: answer.inputManagerID.id,
+//         });
+//       });
+//   });
+//   ///////////////////////////////////////
+//   //then will run a back or exit prompt//
+//   ///////////////////////////////////////
+//   // promptUser();
+// }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function dADD() {
   inquirer
@@ -164,15 +161,12 @@ function dADD() {
       connection.query("INSERT INTO department SET ?", {
         name: answer.inputDName,
       });
-      ///////////////////////////////////////
-      //then will run a back or exit prompt//
-      ///////////////////////////////////////
-      process.exit();
+      promptUser();
     });
 }
 
 function rADD() {
-  connection.query("SELECT name FROM department", function (err, res) {
+  connection.query("SELECT * FROM department", function (err, res) {
     if (err) throw err;
     inquirer
       .prompt([
@@ -186,73 +180,98 @@ function rADD() {
           type: "input",
           message: "What is the salary of this role?",
         },
-        ///////////////////////////////////////////////////////////////////////////////////
-        ///////////////////////////////why you no work?////////////////////////////////////
         {
           name: "dID",
           type: "list",
           message: "What department is this role in?",
-          choices: [1, 2, 3],
-          // choices: res.map((item) => ({ role: item.name })),
+          choices: res.map((item) => ({ name: item.name, value: item })),
         },
       ])
       .then(function (answer) {
-        connection.query("INSERT INTO employee SET ?", {
+        connection.query("INSERT INTO role SET ?", {
           title: answer.roleTitle,
           salary: answer.roleSalary,
-          department_id: answer.dID,
+          department_id: answer.dID.id,
         });
-        ///////////////////////////////////////
-        //then will run a back or exit prompt//
-        ///////////////////////////////////////
-        process.exit();
+        promptUser();
       });
   });
 }
 
 //////////////////////////////////////////////this is dum/////////////////////////////////////////////////
-function eUpp() {
+// function eRoleUpp() {
+//   connection.query("SELECT * FROM employee", function (err, res) {
+//     if (err) throw err;
+//     inquirer
+//       .prompt({
+//         name: "selEmp",
+//         type: "list",
+//         message: "What employee would you like to modify the role for?",
+//         choice: res.map((item) => ({
+//           name: `${item.first_name} ${item.last_name}`,
+//           value: item,
+//         })),
+//       })
+//       .then(function (answer) {
+//         connection.query(
+//           "Select * FROM employee Where ?",
+//           { id: answer.selEmp },
+//           function (err, res) {
+//             inquirer
+//               .prompt({
+//                 name: "nInputRole",
+//                 type: "list",
+//                 message: "What is the employees role?",
+//                 choices: res.map((item) => ({ name: item.title, value: item })),
+//               })
+//               .then(function (answer) {
+//                 connection.query("UPDATE employee SET ? WHERE ?", [
+//                   {
+//                     role_id: answer.inputRole.id,
+//                   },
+//                   {
+//                     employee: answer.selEmp,
+//                   },
+//                 ]);
+//                 promptUser();
+//               });
+//           }
+//         );
+//       });
+//   });
+// }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function eRoleUpp() {
   connection.query("SELECT * FROM employee", function (err, res) {
     if (err) throw err;
     inquirer
-      .propmt({
-        name: "selEmp",
-        type: "",
-        message: "",
-        choice: ["", "", ""],
-      })
+      .prompt([
+        {
+          name: "selEmp",
+          type: "list",
+          message: "What employee would you like to modify the role for?",
+          choices: res.map((item) => ({
+            name: `${item.first_name} ${item.last_name}`,
+            value: item,
+          })),
+        },
+        {
+          name: "nInputRole",
+          type: "input",
+          message: "What is the employees new role ID?",
+        },
+      ])
       .then(function (answer) {
-        connection.query(
-          "Select * FROM employee Where ?",
-          { id: answer.selEmp },
-          function (err, res) {
-            inquirer.prompt([
-              {
-                name: "nInputName1",
-                type: "input",
-                message: "What is the employees first name?",
-              },
-              {
-                name: "nInputName2",
-                type: "input",
-                message: "What is the employees last name?",
-              },
-              {
-                name: "nInputRole",
-                type: "list",
-                message: "What is the employees role?",
-                choices: [1, 2, 3],
-              },
-              {
-                name: "nInputManagerID",
-                type: "list",
-                message: "Who will be the employees manager?",
-                choices: [1, 2, 3],
-              },
-            ]);
-          }
-        );
+        console.log(answer.selEmp);
+        connection.query("UPDATE employee SET ? WHERE ?", [
+          {
+            role_id: answer.nInputRole,
+          },
+          {
+            id: answer.selEmp.id,
+          },
+        ]);
+        promptUser();
       });
   });
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
