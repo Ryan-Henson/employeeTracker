@@ -13,7 +13,7 @@ CREATE TABLE role (
     department_id INT,
     PRIMARY KEY (id)
 );
-CREATE TABLE employees (
+CREATE TABLE employee (
     id INT AUTO_INCREMENT,
     first_name VARCHAR(30),
     last_name VARCHAR(30),
@@ -21,5 +21,12 @@ CREATE TABLE employees (
     manager_id INT,
     PRIMARY KEY(id)
 );
-INSERT INTO employees (first_name, last_name, role_id, manager_id)
-VALUES ("Ryan", "Henson", 666, 3)
+
+INSERT INTO department (name)
+VALUES ("Topdawg");
+
+INSERT INTO role (title, salary, department_id)
+VALUES ("Boss", 1000000, 1);
+
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("Ryan", "Henson", 1, null);
