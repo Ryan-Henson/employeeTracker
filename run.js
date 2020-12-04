@@ -262,7 +262,6 @@ function eRoleUpp() {
         },
       ])
       .then(function (answer) {
-        console.log(answer.selEmp);
         connection.query("UPDATE employee SET ? WHERE ?", [
           {
             role_id: answer.nInputRole,
